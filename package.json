@@ -1,7 +1,7 @@
 {
   "name": "homebridge-roomba",
-  "version": "0.0.1",
-  "description": "roomba for homebridge",
+  "version": "0.0.2",
+  "description": "homebridge-plugin for Roomba980",
   "license": "ISC",
   "keywords": [
     "homebridge-plugin"
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/ume/homebridge-roomba"
+    "url": "git://github.com/umesan/homebridge-roomba"
   },
   "dependencies": {
     "request": "^2.65.0"
