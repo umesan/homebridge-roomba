@@ -1,0 +1,23 @@
+{
+  "name": "homebridge-roomba",
+  "version": "0.0.1",
+  "description": "roomba for homebridge",
+  "license": "ISC",
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "author": {
+    "name": "umesan"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ume/homebridge-roomba"
+  },
+  "dependencies": {
+    "request": "^2.65.0"
+  }
+}
