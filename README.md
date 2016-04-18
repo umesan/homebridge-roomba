@@ -1,6 +1,8 @@
 # homebridge-roomba
 
-homebridge-plugin for Roomba980
+homebridge-plugin for Roomba980  
+[![homebridge-plugin for Roomba980](http://img.youtube.com/vi/BbHbArJ95g0/0.jpg)](https://www.youtube.com/watch?v=BbHbArJ95g0)
+
 
 # Installation
 
