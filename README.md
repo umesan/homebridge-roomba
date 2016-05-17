@@ -24,3 +24,17 @@ Configuration sample:
     }
 ]
 ```
+
+
+# How do You find the BLID and robotpwd?
+
+1. [install Charles](https://www.charlesproxy.com/)
+2. Start the Charles.
+3. [Set the packet capture of the iPhone.](http://qiita.com/HIkaruSato/items/1f66c1a189bf9c19f838)
+4. Start the iRobot app.
+5. Check the contents of communication 「https://irobot.axeda.com」.
+6. Check the request parameters of the top of the communication.
+```
+example:
+blid=0123456789abcdef&robotpwd=abcdefghijklmnop&method=getStatus
+```
