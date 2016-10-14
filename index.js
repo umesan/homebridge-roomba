@@ -23,8 +23,13 @@ RoombaAccessory.prototype = {
     httpRequest: function (type,callback) {
         request({
             url: this.irobotapi,
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            method: 'GET',
+            headers: {
+                'User-Agent': 'aspen%20production/2618 CFNetwork/758.3.15 Darwin/15.4.0',
+                'Accept': '*/*',
+                'Accept-Language': 'en-us',
+                'ASSET-ID': 'ElPaso@irobot!' + this.blid
+            },
             json:true,
             form: {
                 'blid':this.blid,
