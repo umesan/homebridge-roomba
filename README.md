@@ -12,19 +12,19 @@ homebridge-plugin for Roomba980(Roomba 900 Software Version 2.x).
 # Installation
 
 ## 1. Install homebridge and homebridge plugin.
-1-1. Install homebridge: `npm install -g homebridge`
-1-2. Install homebridge-roomba: `npm install -g homebridge-roomba`
+- 1-1. Install homebridge: `npm install -g homebridge`
+- 1-2. Install homebridge-roomba: `npm install -g homebridge-roomba`
 
 ## 2. Confirm the IP address to which Roomba is connected with the official application.
-2-1. Open the `iRobot HOME App`.
-2-2. Select  More ➔  Settings ➔ Wi-Fi Settings ➔ Details of robot's Wi-Fi
-2-3. Check IP Address items. (exsample: 192.16.xx.xx)
+- 2-1. Open the `iRobot HOME App`.
+- 2-2. Select  More ➔  Settings ➔ Wi-Fi Settings ➔ Details of robot's Wi-Fi
+- 2-3. Check IP Address items. (exsample: 192.16.xx.xx)
 
 ## 3. Get robotpwd and blid.
-3-1. Move to the directory where you installed `homebridge-roomba`.
+- 3-1. Move to the directory where you installed `homebridge-roomba`.  
      (exsample path `/Users/xxxxxx/.nodebrew/node/v7.7.1/lib/node_modules/homebridge-roomba/`)
-3-2. `npm run getrobotpwd 192.16.xx.xx`
-3-3. Follow the displayed message.
+- 3-2. `npm run getrobotpwd 192.16.xx.xx`
+- 3-3. Follow the displayed message.
 ```
 Make sure your robot is on the Home Base and powered on (green lights on).
 Then press and hold the HOME button on your robot until it plays a series of tones (about 2 seconds).
