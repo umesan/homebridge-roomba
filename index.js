@@ -1,136 +1,185 @@
-var Service, Characteristic;
-var request = require('request');
+/**
+ * homebridge-roomba
+ */
 
-module.exports = function (homebridge) {
-    Service = homebridge.hap.Service;
-    Characteristic = homebridge.hap.Characteristic;
-    homebridge.registerAccessory("homebridge-roomba", "Roomba", RoombaAccessory);
-}
+let Service;
+let Characteristic;
+
+// dorita980をrequire
+const dorita980 = require('dorita980');
+// 遅延時間を設定
+const delayTime = 5000;
 
 
-function RoombaAccessory(log, config) {
-    this.log = log;
+/**
+ * Homebridgeアクセサリの初期化処理
+ *
+ * @param {Object} log ログ
+ * @param {Object} config config.jsonのaccessoriesに指定した設定値
+ * @param {String} config.name アクセサリ名
+ * @param {String} config.blid Roombaのblid
+ * @param {String} config.robotpwd Roombaのパスワード
+ * @param {String} config.ipaddress Roombaの接続しているIP Address
+ * @method roombaAccessory
+ */
+const roombaAccessory = function (log, config) {
+  this.log = log;
+  this.name = config.name;
+  this.blid = config.blid;
+  this.robotpwd = config.robotpwd;
+  this.ipaddress = config.ipaddress;
+};
 
-    // url info
-    this.blid = config["blid"];
-    this.robotpwd = config["robotpwd"];
-    this.irobotapi = 'https://irobot.axeda.com/services/v1/rest/Scripto/execute/AspenApiRequest';
-    this.name = config["name"];
-}
 
-RoombaAccessory.prototype = {
+/**
+ * Homebridgeがキャッシュされたアクセサリを復元しようとした時に呼び出され処理
+ * ここでアクセサリの各挙動を設定できます
+ */
+roombaAccessory.prototype = {
+  /**
+   * ユーザーがiOSアプリで「デバイスを識別する」をクリックしたときに呼び出される関数
+   *
+   * @param {Function} callback
+   * @method identify
+   */
+  identify(callback) {
+    this.log(callback);
+    this.log('Identify requested!');
+    callback();
+  },
 
-    httpRequest: function (type,callback) {
-        request({
-            url: this.irobotapi,
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            json:true,
-            form: {
-                'blid':this.blid,
-                'robotpwd':this.robotpwd,
-                'method':'multipleFieldSet',
-                'value':'{"remoteCommand":"'+type+'"}'
-            }
-        },
-        function (error, response, body) {
-            callback(error, response, body)
-        })
-    },
+  /**
+   * setSwitchState
+   *
+   * @param {Number} powerOn 0 or 1
+   * @param {Function} callback
+   * @method setSwitchState
+   */
+  setSwitchState(powerOn, callback) {
+    const that = this;
 
-    setPowerState: function(powerOn, callback) {
-        if (powerOn) {
-            this.log("Roomba Start!");
-            this.httpRequest('start',function(error, response, responseBody) {
-                if (error) {
-                    this.log('Roomba Failed: %s', error.message);
-                    this.log(response);
-                    callback(error);
-                } else {
-                    this.log('Roomba is Ruuuuuuuuuuning!');
-                    callback();
+    // dorita980 Local
+    const roombaViaLocal = new dorita980.Local(this.blid, this.robotpwd, this.ipaddress);
+    if (powerOn) {
+      // 掃除をして
+      that.log('Roomba Start!');
+
+      // Roombaに接続する
+      roombaViaLocal.on('connect', () => {
+        that.log('Roomba Connect!');
+
+        // Roombaに掃除を開始させる
+        roombaViaLocal.start().then(() => {
+          that.log('Roomba is Ruuuuuuuuuunning!');
+
+          // 実行後、公式アプリのチャンネルを解放するためにローカル接続を切断する
+          roombaViaLocal.end();
+          callback();
+        }).catch((error) => {
+          // エラー
+          that.log('Roomba Failed: %s', error.message);
+          that.log(error);
+          callback(error);
+        });
+      });
+    } else {
+      // 掃除をやめて
+      that.log('Roomba Pause & Dock!');
+      // Roombaに接続する
+      roombaViaLocal.on('connect', () => {
+        that.log('Roomba Connect!');
+
+        // Roombaの掃除を一時停止させる
+        roombaViaLocal.pause().then(() => {
+          that.log('Roomba is Pauuuuuuuuuuse!');
+          callback();
+
+          // Roombaの状態を取得する関数
+          const checkStatus = (time) => {
+            setTimeout(() => {
+              that.log('Checking the Status of Roomba!');
+
+              // Roombaの現在の状態を取得
+              roombaViaLocal.getMission().then((response) => {
+                that.log('Get Status of Roomba!');
+                that.log(response);
+                // response.cleanMissionStatus.phaseの値を見てRoombaの状況毎に処理を分岐
+                switch (response.cleanMissionStatus.phase) {
+                  case 'stop':
+                    // RoombaをDockに戻す
+                    roombaViaLocal.dock().then((() => {
+                      // 実行後、公式アプリのチャンネルを解放するためにローカル接続を切断する
+                      roombaViaLocal.end();
+                      that.log('Roomba is Back Home! Goodbye!');
+                    })).catch((error) => {
+                      that.log('Roomba Failed: %s', error.message);
+                      that.log(error);
+                    });
+                    break;
+                  case 'run':
+                    // Roombaが走行中の場合、遅延時間待ってから再度ステータスをチェックする
+                    that.log(`Roomba is still Running... Waiting ${time}ms.`);
+                    checkStatus(time);
+                    break;
+                  default:
+                    // 実行後、公式アプリのチャンネルを解放するためにローカル接続を切断する
+                    roombaViaLocal.end();
+                    that.log('Roomba is not Running....You Please Help.');
+                    break;
                 }
-            }.bind(this));
-        } else {
-            this.log("Roomba Pause & Dock!");
-            this.httpRequest('pause',function(error, response, responseBody) {
-                if (error) {
-                    this.log('Roomba Failed: %s', error.message);
-                    this.log(response);
-                    callback(error);
-                } else {
-                    this.log('Roomba is Pause!');
-
-                    var checkStatus = function(time){
-                        setTimeout(
-                            function() {
-                                this.log('Roomba Checking the Status!');
-                                request({
-                                    url: this.irobotapi,
-                                    method: 'POST',
-                                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                                    json:true,
-                                    form: {
-                                        'blid':this.blid,
-                                        'robotpwd':this.robotpwd,
-                                        'method':'getStatus'
-                                    }
-                                },
-                                function (error, response, body) {
-                                    this.log('Roomba Get Status!');
-                                    var status = JSON.parse(body.robot_status);
-                                    switch (status.phase){
-                                        case "stop":
-                                            this.httpRequest('dock',function(error, response, responseBody) {
-                                                if (error) {
-                                                    this.log('Roomba Failed: %s', error.message);
-                                                    this.log(response);
-                                                    callback(error);
-                                                } else {
-                                                    this.log('Roomba Back Home! Goodbye!');
-                                                    callback();
-                                                }
-                                            }.bind(this));
-                                            break;
-                                        case "run":
-                                            this.log('Roomba is still Running... Wait a 3sec.');
-                                            checkStatus(3000);
-                                            break;
-                                        default:
-                                            this.log('Roomba is not Running...You Please Help.');
-                                            callback();
-                                            break;
-                                    }
-                                }.bind(this));
-
-                            }.bind(this),time
-                        );
-                    }.bind(this);
-                    checkStatus(3000);
-
-                }
-            }.bind(this));
-        }
-    },
-
-
-    identify: function (callback) {
-        this.log("Identify requested!");
-        callback(); // success
-    },
-
-    getServices: function () {
-        var informationService = new Service.AccessoryInformation();
-        informationService
-                .setCharacteristic(Characteristic.Manufacturer, "Roomba Manufacturer")
-                .setCharacteristic(Characteristic.Model, "Roomba Model")
-                .setCharacteristic(Characteristic.SerialNumber, "Roomba Serial Number");
-
-        var switchService = new Service.Switch(this.name);
-        switchService
-                .getCharacteristic(Characteristic.On)
-                .on('set', this.setPowerState.bind(this));
-
-        return [switchService];
+              }).catch((error) => {
+                that.error(error);
+              });
+            }, time);
+          };
+          // Roombaの状態を取得する
+          checkStatus(delayTime);
+        }).catch((error) => {
+          that.log('Roomba Failed: %s', error.message);
+          callback(error);
+        });
+      });
     }
+  },
+
+
+  /**
+   * 一連のサービスを返す関数
+   *
+   * @return {Array} サービスの配列
+   * @method getServices
+   */
+  getServices() {
+    // Homekitで定義されているサービス（機能）のうちSwitchを利用する
+    // Homekitで定義されているサービスの一覧は下記URLを参照
+    //  - http://qiita.com/tamaki/items/cf6a09729534eae8f24b#%E3%81%A9%E3%82%93%E3%81%AAservice%E3%81%8C%E3%81%82%E3%82%8B%E3%81%8B%E3%82%92%E8%AA%BF%E3%81%B9%E3%82%8B
+    const switchService = new Service.Switch(this.name);
+    switchService
+      // getCharacteristicは、既存のサービスと一致する名前またはテンプレートを検索し、それをオブジェクトとして返却する
+      .getCharacteristic(Characteristic.On)
+      // イベントにイベントリスナーを追加。
+      // setイベントは、iOSが値を設定した場合や、
+      // setValueというメソッドがhomebridgeで呼び出された場合に呼び出されます。
+      .on('set', this.setSwitchState.bind(this));
+
+    return [switchService];
+  },
+};
+
+
+/**
+ * export
+ */
+module.exports = (homebridge) => {
+  // Homebridgeは内部的にHap-NodeJSというパッケージをrequireしています。
+  // HAP-NodeJSは、HomeKitアクセサリサーバのNode.js実装で、
+  // 独自のHomeKitアクセサリを作成するためのAPIを提供しています。
+
+  // homebridge.hap.Serviceでは、HomeKitで定義している「とあるデバイス」の「とある機能」を提供するための雛形です。
+  // homebridge.hap.Characteristicは、Serviceに割り当てられる特定の状態を定義するための雛形です。
+
+  Service = homebridge.hap.Service;
+  Characteristic = homebridge.hap.Characteristic;
+  // homebridge.registerAccessory(プラグイン名, プラットフォーム名, コンストラクタ名);
+  homebridge.registerAccessory('homebridge-roomba', 'Roomba', roombaAccessory);
 };

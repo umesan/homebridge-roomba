@@ -1,23 +1,37 @@
 {
   "name": "homebridge-roomba",
-  "version": "0.0.2",
   "description": "homebridge-plugin for Roomba980",
+  "version": "1.0.0",
   "license": "ISC",
-  "keywords": [
-    "homebridge-plugin"
-  ],
-  "engines": {
-    "node": ">=0.12.0",
-    "homebridge": ">=0.2.0"
-  },
   "author": {
     "name": "umesan"
   },
+  "main": "",
+  "keywords": [
+    "homebridge-plugin",
+    "unofficial",
+    "iRobot",
+    "Roomba",
+    "980",
+    "IoT"
+  ],
   "repository": {
     "type": "git",
     "url": "git://github.com/umesan/homebridge-roomba"
   },
+  "scripts": {
+    "getrobotpwd": "cd node_modules/dorita980 && npm install && node ./bin/getpassword.js",
+    "lint": "eslint index.js"
+  },
   "dependencies": {
-    "request": "^2.65.0"
+    "dorita980": "^3.0.11"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^11.1.0",
+    "eslint-plugin-import": "^1.15.0",
+    "eslint-plugin-jsx-a11y": "^2.2.2",
+     "eslint-plugin-react": "^6.3.0",
+    "eslint-loader": "^1.6.1"
   }
 }
