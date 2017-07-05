@@ -19,6 +19,10 @@
     "type": "git",
     "url": "git://github.com/umesan/homebridge-roomba"
   },
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
   "scripts": {
     "getrobotpwd": "cd node_modules/dorita980 && npm install && node ./bin/getpassword.js",
     "lint": "eslint index.js"
