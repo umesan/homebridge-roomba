@@ -7,6 +7,8 @@ let Characteristic;
 
 // dorita980をrequire
 const dorita980 = require('dorita980');
+// connect後、start()までの遅延時間を設定
+const delayStartTime = 1000;
 // 遅延時間を設定
 const delayTime = 5000;
 
@@ -67,20 +69,21 @@ roombaAccessory.prototype = {
       // Roombaに接続する
       roombaViaLocal.on('connect', () => {
         that.log('Roomba Connect!');
+        setTimeout(() => {
+          // Roombaに掃除を開始させる
+          roombaViaLocal.start().then(() => {
+            that.log('Roomba is Ruuuuuuuuuunning!');
 
-        // Roombaに掃除を開始させる
-        roombaViaLocal.start().then(() => {
-          that.log('Roomba is Ruuuuuuuuuunning!');
-
-          // 実行後、公式アプリのチャンネルを解放するためにローカル接続を切断する
-          roombaViaLocal.end();
-          callback();
-        }).catch((error) => {
-          // エラー
-          that.log('Roomba Failed: %s', error.message);
-          that.log(error);
-          callback(error);
-        });
+            // 実行後、公式アプリのチャンネルを解放するためにローカル接続を切断する
+            roombaViaLocal.end();
+            callback();
+          }).catch((error) => {
+            // エラー
+            that.log('Roomba Failed: %s', error.message);
+            that.log(error);
+            callback(error);
+          });
+        },delayStartTime);
       });
     } else {
       // 掃除をやめて
