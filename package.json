@@ -1,7 +1,7 @@
 {
   "name": "homebridge-roomba",
   "description": "homebridge-plugin for Roomba980",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "ISC",
   "author": {
     "name": "umesan"
